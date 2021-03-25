@@ -12,17 +12,6 @@ import math
 import pandas as pd
 import time
 
-# global settings
-theme_type = Literal["dark_background", "default"]
-theme_filename = ""
-def plt_style_use(style: theme_type):
-    plt.style.use(style)
-    global theme_filename
-    if style == "dark_background":
-        theme_filename = "_dark"
-    else:
-        theme_filename = ""
-
 
 
 ### FORMATTING FUNCTIONS ###
@@ -85,9 +74,10 @@ def wald_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union
         z = zScore_normal(conflevel)
     
     sd = math.sqrt((p*(1-p))/n)
+    z_sd = z*sd
     ci = (
-        p - z*sd,
-        p + z*sd
+        p - z_sd,
+        p + z_sd
     )
     return ci
 
@@ -130,7 +120,7 @@ def wilson_score_interval_continuity_corrected(x: int, n: int, conflevel: Union[
     # $$w_{cc}^+ = \frac{e + (z\sqrt{f-g} + 1)}{h}$$
     if x > n:
         raise ValueError(f"Number of succeeded trials (x) has to be no more than number of total trials (n). x = {x} and n = {n} were passed")
-    p = x/n
+    p = float(x)/n
     if z is None:
         if conflevel is None:
             conflevel = 0.95
@@ -166,17 +156,14 @@ def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], 
         raise ValueError(
             f"confidence level has to be real value between 0 and 1. Got: conflevel={conflevel}")
 
-    coverage: List[float] = []
+    coverage = []
     z = zScore_normal(conflevel)
 
     for prob in list(probs):
         x = np.random.binomial(numTrials, prob, numSamples)
-        n_covered = 0
-        for j in range(0, numSamples):
-            ci: Tuple[float, float] = method(x[j], numTrials, None, z)
-            n_covered += int(ci[0] < prob < ci[1])
-        # captures the coverage for each of the true proportions. Ideally, for a 95%CI this should be more or less 95%
-        thiscoverage: float = (n_covered/numSamples) * 100
+        cis = [method(x[j], numTrials, None, z) for j in range(0, numSamples)]
+        covered = [int(ci[0] < prob < ci[1]) for ci in cis]
+        thiscoverage = (sum(covered)/numSamples) * 100
         coverage.append(thiscoverage)
         print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
 
@@ -184,8 +171,8 @@ def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], 
 
 
 def plot_coverage(probs: Iterable[float], coverage: List[float], conflevel: float, title: str, xlabel: str, ylabel: str):
-    plt.plot(list(probs), coverage, color='green', marker=',', linestyle='solid')
-    plt.axhline(conflevel*100, color='orange', linestyle=":")
+    plt.plot(list(probs), coverage, color='green', marker=',', linestyle='solid', zorder=5)
+    plt.axhline(conflevel*100, color='orange', linestyle=":", zorder=0)
     x1, x2, y1, y2 = plt.axis()
     plt.axis((x1, x2, 50, 100))
     plt.title(title, fontsize="large", fontweight="bold")
@@ -202,7 +189,9 @@ def plot_coverage(probs: Iterable[float], coverage: List[float], conflevel: floa
     avg_deviation = avg_deviation/len(coverage)
     plt.text((x1+x2)/2, (y1+5),
         f"average deviation from {floatToStr(conflevel*100, 2)}% point = {floatToStr(avg_deviation, 4)} (coverage %)",
-        ha="center", fontstyle="italic")
+        ha="center", fontstyle="italic", zorder=10)
+    plt.xticks(fontsize=8)
+    plt.ticklabel_format(scilimits=(-3,3), useMathText=True)
 
 
 def calculate_and_plot_coverage(numSamples: int, numTrials: int,
@@ -221,23 +210,20 @@ def calculate_and_plot_coverage(numSamples: int, numTrials: int,
 ### EXE ###
 
 numSamples = 50000
-numTrials = 40000
+# numTrials = 40000
 step = Decimal('0.000001')
 probs = list(frange(Decimal('0.000001'), Decimal('0.000199'), step))
 conflevel = 0.95
 
 i = 0
-for (numTrials, theme) in [
-    (20000, "default"),
-    (20000, "dark_background"),
-    (21720, "default"),
-    (21720, "dark_background"),
-    (37706, "default"),
-    (37706, "dark_background"),
-    (40000, "default"),
-    (40000, "dark_background"),
+for (numTrials) in [
+    # (100),
+    (20000),
+    # (21720),
+    # (37706),
+    (40000),
 ]:
-    for (method, name, method_filename) in [
+    for (method, methodname, method_filename) in [
         (wald_interval, "Wald Interval", 'wald'),
         (wilson_score_interval, "Wilson Score Interval", "wsi"),
         (wilson_score_interval_continuity_corrected,
@@ -245,26 +231,31 @@ for (numTrials, theme) in [
         (wilson_score_interval_continuity_semicorrected,
         "Wilson Score Interval (continuity-semi-corrected)", "wsisc"),
     ]:
-        plt_style_use(theme)
-        i += 1
-        plt.figure(i)
         print(
-            f"name = {name}, numTrials = {numTrials}, numSamples = {numSamples}, probs = {probs[0]}-{probs[-1]}..{step}, conflevel = {conflevel}")
-        calculate_and_plot_coverage(numSamples, numTrials, probs, conflevel, method, name)
-        plt.xticks(fontsize=8)
-        plt.ticklabel_format(scilimits=(-3,3), useMathText=True)
-        plt.savefig(
-            f"{method_filename}_pfrom{probs[0]}_pto{probs[-1]}_pstep{step}_trials{numTrials}_samples{numSamples}{theme_filename}.png")
+            f"name = {methodname}, numTrials = {numTrials}, numSamples = {numSamples}, probs = {probs[0]}-{probs[-1]}..{step}, conflevel = {conflevel}")
+
+
+        # calculate_and_plot_coverage(numSamples, numTrials, probs, conflevel, method, methodname)
+
+        start_time = time.time()
+        coverage = calculate_coverage(numSamples, numTrials, probs, conflevel, method)
+        print("--- %s seconds ---" % (time.time() - start_time))
+
+        for (theme, theme_filename) in [
+            ("default", ""),
+            ("dark_background", "_dark")
+        ]:
+            plt.style.use(theme)
+            i += 1
+            plt.figure(i)
+            plot_coverage(probs, coverage, conflevel, title=f"Coverage of {methodname}\n{numSamples} samples ✕ {numTrials} trials",
+                    xlabel="True Proportion (Population Proportion)", ylabel=f"Coverage (%) for {floatToStr(conflevel*100, 2)}%CI")
+
+            plt.savefig(
+                f"{method_filename}_pfrom{probs[0]}_pto{probs[-1]}_pstep{step}_trials{numTrials}_samples{numSamples}{theme_filename}.png")
 
 
 plt.show()
 
-
-# calculate_and_plot_coverage(numSamples, numTrials,
-#                             probs, conflevel, wald_interval, "Wald Interval")
-# calculate_and_plot_coverage(numSamples, numTrials,
-#                             probs, conflevel, wilson_score_interval, "Wilson Score Interval")
-# calculate_and_plot_coverage(numSamples, numTrials,
-#                             probs, conflevel, wilson_score_interval_continuity_corrected, "Wilson Score Interval (continuity-corrected)")
 
 
