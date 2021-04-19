@@ -5,12 +5,13 @@ from typing import Callable, Generator, Iterable, List, Tuple, Union, Literal
 # for high precision float operations (supports most math functions like sqrt, often faster than decimal)
 from bigfloat import BigFloat
 from matplotlib import pyplot as plt
-from scipy.stats import norm
+from scipy.stats import norm, binom
 import numpy as np
 import math
 # import csv
 import pandas as pd
 import time
+from functools import lru_cache
 
 
 
@@ -46,9 +47,22 @@ def frange(x: Union[float, Decimal], y: Union[float, Decimal], jump: Union[float
 
 ### MATH FUNCTIONS ###
 
+@lru_cache(1)
 def zScore_normal(conflevel: float = 0.95):
     z: float = norm.ppf((1+conflevel)/2)
     return abs(z)
+
+
+@lru_cache(50000)
+def significant_range(n: int, p: float, sds: float):
+    """
+    Calculates range of x values that span *sds* standard deviations from the mean of a binomial distribution with parameters *n* and *p*
+    """
+    M = n*p
+    sd = math.sqrt(n*p*(1-p))
+    (x_from, x_to) = max(0, np.floor(M - sds*sd) - 1), min(n, np.ceil(M + sds*sd) + 1)
+    return int(x_from), int(x_to)
+
 
 
 ### CI METHODS FOR PROPORTIONS ###
@@ -59,6 +73,7 @@ CI_method = Callable[
 ]
 
 
+@lru_cache(50000)
 def wald_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     # LaTeX: $$(w^-, w^+) = \hat{p}\,\pm\,z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
     """Calculates confidence interval for proportions using Wald Interval method
@@ -88,6 +103,7 @@ def wald_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union
     return ci
 
 
+@lru_cache(50000)
 def wilson_score_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     # LaTeX: $$(w^-, w^+) = \frac{p + z^2/2n \pm z\sqrt{p(1-p)/n + z^2/4n^2}}{1+z^2/n}$$
     """Calculates confidence interval for proportions using Wilson Score Interval method
@@ -118,6 +134,7 @@ def wilson_score_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, 
     return ci
 
 
+@lru_cache(50000)
 def wilson_score_interval_continuity_corrected(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     # LaTeX:
     # $$w_{cc}^- = \frac{2np + z^2 - (z\sqrt{z^2 - 1/n + 4np(1-p) + (4p-2)} + 1)}{2(n+z^2)}$$
@@ -155,6 +172,7 @@ def wilson_score_interval_continuity_corrected(x: int, n: int, conflevel: Union[
     return ci
 
 
+@lru_cache(50000)
 def wilson_score_interval_continuity_semicorrected(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     """Calculates confidence interval for proportions using two Wilson Score Interval methods
     (arithmetic mean of ordinary and continuity-corrected methods)
@@ -187,7 +205,7 @@ def wilson_score_interval_continuity_semicorrected(x: int, n: int, conflevel: Un
 
 ### MAIN FUNCTIONS ###
 
-def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], conflevel: float, method: CI_method) -> List[float]:
+def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], conflevel: float, method: CI_method, randomly: bool = True) -> List[float]:
     if not 0 < conflevel < 1:
         raise ValueError(
             f"confidence level has to be real value between 0 and 1. Got: conflevel={conflevel}")
@@ -195,13 +213,25 @@ def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], 
     coverage = []
     z = zScore_normal(conflevel)
 
-    for prob in list(probs):
-        x = np.random.binomial(numTrials, prob, numSamples)
-        cis = [method(x[j], numTrials, None, z) for j in range(0, numSamples)]
-        covered = [int(ci[0] < prob < ci[1]) for ci in cis]
-        thiscoverage = (sum(covered)/numSamples) * 100
-        coverage.append(thiscoverage)
-        print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
+    if randomly:
+        for prob in list(probs):
+            x = np.random.binomial(numTrials, prob, numSamples)
+            cis = [method(x[j], numTrials, None, z) for j in range(0, numSamples)]
+            covered = [int(ci[0] < prob < ci[1]) for ci in cis]
+            thiscoverage = (sum(covered)/numSamples) * 100
+            coverage.append(thiscoverage)
+            print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
+    else:
+        for prob in list(probs):
+            x_from, x_to = significant_range(n=numTrials, p=prob, sds=4.7)
+            xs = range(x_from, x_to+1)
+            len_xs = len(xs)
+            print(f"range(x_from, x_to) = {xs}")
+            cis = [method(x, numTrials, None, z) for x in xs]
+            covered = [int(ci[0] < prob < ci[1]) for ci in cis]
+            thiscoverage = sum([covered[i]*binom.pmf(xs[i],numTrials,prob) for i in range(len(xs))]) * 100
+            coverage.append(thiscoverage)
+            print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
 
     return coverage
 
@@ -245,27 +275,30 @@ def calculate_and_plot_coverage(numSamples: int, numTrials: int,
 
 ### EXE ###
 
-numSamples = 50000
+numSamples = 10000
 # numTrials = 40000
-step = Decimal('0.0000001')
-probs = list(frange(Decimal('0.000001'), Decimal('0.000199'), step))
+step = Decimal('0.003')
+probs = list(frange(Decimal('0.001'), Decimal('0.999'), step))
+# step = Decimal('0.000001')
+# probs = list(frange(Decimal('0.000001'), Decimal('0.000199'), step))
 conflevel = 0.95
 
 i = 0
 for (numTrials) in [
-    # (100),
-    (20000),
+    (100),
+    # (1000),
+    # (20000),
     # (21720),
     # (37706),
-    (40000),
+    # (40000),
 ]:
     for (method, methodname, method_filename) in [
         (wald_interval, "Wald Interval", 'wald'),
-        (wilson_score_interval, "Wilson Score Interval", "wsi"),
-        (wilson_score_interval_continuity_corrected,
-        "Wilson Score Interval (continuity-corrected)", "wsicc"),
-        (wilson_score_interval_continuity_semicorrected,
-        "Wilson Score Interval (continuity-semi-corrected)", "wsisc"),
+        # (wilson_score_interval, "Wilson Score Interval", "wsi"),
+        # (wilson_score_interval_continuity_corrected,
+        # "Wilson Score Interval (continuity-corrected)", "wsicc"),
+        # (wilson_score_interval_continuity_semicorrected,
+        # "Wilson Score Interval (continuity-semi-corrected)", "wsisc"),
     ]:
         print(
             f"name = {methodname}, numTrials = {numTrials}, numSamples = {numSamples}, probs = {probs[0]}-{probs[-1]}..{step}, conflevel = {conflevel}")
@@ -274,11 +307,11 @@ for (numTrials) in [
         # calculate_and_plot_coverage(numSamples, numTrials, probs, conflevel, method, methodname)
 
         start_time = time.time()
-        coverage = calculate_coverage(numSamples, numTrials, probs, conflevel, method)
+        coverage = calculate_coverage(numSamples, numTrials, probs, conflevel, method, False)
         print("--- %s seconds ---" % (time.time() - start_time))
 
         for (theme, theme_filename) in [
-            ("default", ""),
+            # ("default", ""),
             ("dark_background", "_dark")
         ]:
             plt.style.use(theme)
@@ -287,8 +320,8 @@ for (numTrials) in [
             plot_coverage(probs, coverage, conflevel, title=f"Coverage of {methodname}\n{numSamples} samples ✕ {numTrials} trials",
                     xlabel="True Proportion (Population Proportion)", ylabel=f"Coverage (%) for {floatToStr(conflevel*100, 2)}%CI")
 
-            plt.savefig(
-                f"{method_filename}_pfrom{probs[0]}_pto{probs[-1]}_pstep{step}_trials{numTrials}_samples{numSamples}{theme_filename}.png")
+            # plt.savefig(
+            #     f"{method_filename}_pfrom{probs[0]}_pto{probs[-1]}_pstep{step}_trials{numTrials}_samples{numSamples}{theme_filename}.png")
 
 
 plt.show()
