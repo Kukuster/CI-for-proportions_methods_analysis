@@ -13,10 +13,10 @@ To figure out the best method for calculating _**CI for the difference between t
 
 https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist2d.html
 
-The idea is that I would have a `dark_background` style, with a gradient colors. e.g. for a 95%CI:
+The idea is that I would have a `dark_background` style, with a gradient colors. e.g. for a 95%CI (i.e. so-called colormap):
  - 95% coverage - white color,
  - 50% coverage - red color,
- - 100% - green or blue
+ - 100% - blue/purple
 
 
 ### Simulating methods
@@ -41,12 +41,15 @@ By the way, I think "MLE" there means "Maximum Likelihood Estimate", but I'm not
  - [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701110/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701110/)
  - [https://pubmed.ncbi.nlm.nih.gov/9595617/](https://pubmed.ncbi.nlm.nih.gov/9595617/)
  - [http://thescipub.com/pdf/10.3844/amjbsp.2010.23.31](http://thescipub.com/pdf/10.3844/amjbsp.2010.23.31) 
+
 **2. Biostatistics course (Dr. Nicolas Padilla Raygoza, et al.)**
  - [https://docs.google.com/presentation/d/1t1DowyVDDRFYGHDlJgmYMRN4JCrvFl3q/edit#slide=id.p1](https://docs.google.com/presentation/d/1t1DowyVDDRFYGHDlJgmYMRN4JCrvFl3q/edit#slide=id.p1) 
  - [https://www.google.com/search?q=Dr.+Sc.+Nicolas+Padilla+Raygoza+Biostatistics+course+Part+10&oq=Dr.+Sc.+Nicolas+Padilla+Raygoza+Biostatistics+course+Part+10&aqs=chrome..69i57.3448j0j7&sourceid=chrome&ie=UTF-8](https://www.google.com/search?q=Dr.+Sc.+Nicolas+Padilla+Raygoza+Biostatistics+course+Part+10&oq=Dr.+Sc.+Nicolas+Padilla+Raygoza+Biostatistics+course+Part+10&aqs=chrome..69i57.3448j0j7&sourceid=chrome&ie=UTF-8) 
  - [https://slideplayer.com/slide/9837395/](https://slideplayer.com/slide/9837395/)
+
 **3. Using z-test instead of a binomial test:**
  - When can use [https://stats.stackexchange.com/questions/424446/when-can-we-use-a-z-test-instead-of-a-binomial-test](https://stats.stackexchange.com/questions/424446/when-can-we-use-a-z-test-instead-of-a-binomial-test) 
  - How to use [https://cogsci.ucsd.edu/~dgroppe/STATZ/binomial_ztest.pdf](https://cogsci.ucsd.edu/~dgroppe/STATZ/binomial_ztest.pdf) 
+
 **4. A concern of the vaccine causing Bell's palsy**
  - [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7874945/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7874945/) or [https://www.sciencedirect.com/science/article/pii/S266635462100020X?via%3Dihub](https://www.sciencedirect.com/science/article/pii/S266635462100020X?via%3Dihub) 
