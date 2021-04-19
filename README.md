@@ -51,5 +51,3 @@ By the way, I think "MLE" there means "Maximum Likelihood Estimate", but I'm not
  - When can use [https://stats.stackexchange.com/questions/424446/when-can-we-use-a-z-test-instead-of-a-binomial-test](https://stats.stackexchange.com/questions/424446/when-can-we-use-a-z-test-instead-of-a-binomial-test) 
  - How to use [https://cogsci.ucsd.edu/~dgroppe/STATZ/binomial_ztest.pdf](https://cogsci.ucsd.edu/~dgroppe/STATZ/binomial_ztest.pdf) 
 
-**4. A concern of the vaccine causing Bell's palsy**
- - [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7874945/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7874945/) or [https://www.sciencedirect.com/science/article/pii/S266635462100020X?via%3Dihub](https://www.sciencedirect.com/science/article/pii/S266635462100020X?via%3Dihub) 
