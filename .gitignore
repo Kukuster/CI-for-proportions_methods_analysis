@@ -1,4 +1,8 @@
 /venv
 /.vscode
-*.png
 /.ipynb_checkpoints
+**/*__pycache__
+
+*.png
+/testlib*
+/typings/

@@ -223,15 +223,15 @@ def calculate_coverage(numSamples: int, numTrials: int, probs: Iterable[float], 
             print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
     else:
         for prob in list(probs):
-            x_from, x_to = significant_range(n=numTrials, p=prob, sds=4.7)
+            x_from, x_to = significant_range(n=numTrials, p=prob, sds=4.71)
             xs = range(x_from, x_to+1)
             len_xs = len(xs)
-            print(f"range(x_from, x_to) = {xs}")
+            # print(f"range(x_from, x_to) = {xs}")
             cis = [method(x, numTrials, None, z) for x in xs]
             covered = [int(ci[0] < prob < ci[1]) for ci in cis]
             thiscoverage = sum([covered[i]*binom.pmf(xs[i],numTrials,prob) for i in range(len(xs))]) * 100
             coverage.append(thiscoverage)
-            print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
+            # print(f"prob ={prob:9}; coverage ={thiscoverage:6.2f}")
 
     return coverage
 
@@ -277,7 +277,7 @@ def calculate_and_plot_coverage(numSamples: int, numTrials: int,
 
 numSamples = 10000
 # numTrials = 40000
-step = Decimal('0.003')
+step = Decimal('0.01')
 probs = list(frange(Decimal('0.001'), Decimal('0.999'), step))
 # step = Decimal('0.000001')
 # probs = list(frange(Decimal('0.000001'), Decimal('0.000199'), step))
@@ -285,9 +285,10 @@ conflevel = 0.95
 
 i = 0
 for (numTrials) in [
-    (100),
+    # (100),
+    # (100),
     # (1000),
-    # (20000),
+    (20000),
     # (21720),
     # (37706),
     # (40000),
@@ -300,14 +301,14 @@ for (numTrials) in [
         # (wilson_score_interval_continuity_semicorrected,
         # "Wilson Score Interval (continuity-semi-corrected)", "wsisc"),
     ]:
-        print(
-            f"name = {methodname}, numTrials = {numTrials}, numSamples = {numSamples}, probs = {probs[0]}-{probs[-1]}..{step}, conflevel = {conflevel}")
+        # print(
+        #     f"name = {methodname}, numTrials = {numTrials}, numSamples = {numSamples}, probs = {probs[0]}-{probs[-1]}..{step}, conflevel = {conflevel}")
 
 
         # calculate_and_plot_coverage(numSamples, numTrials, probs, conflevel, method, methodname)
 
         start_time = time.time()
-        coverage = calculate_coverage(numSamples, numTrials, probs, conflevel, method, False)
+        coverage = calculate_coverage(numSamples, numTrials, probs, conflevel, method, randomly=False)
         print("--- %s seconds ---" % (time.time() - start_time))
 
         for (theme, theme_filename) in [
