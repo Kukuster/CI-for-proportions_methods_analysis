@@ -24,3 +24,7 @@ def frange(x1: Union[float, Decimal], x2: Union[float, Decimal], step: Union[flo
     while x1 <= x2:
         yield float64(x1)
         x1 = Decimal(x1) + Decimal(step)
+
+
+def precise_float_diff(flt1: Union[float, float64], flt2: Union[float, float64]):
+    return float64(Decimal(str(flt1)) - Decimal(str(flt2)))

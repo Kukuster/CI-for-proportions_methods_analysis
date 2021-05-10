@@ -1,24 +1,24 @@
+from typing import Callable, Dict, Iterable, List, Literal, Tuple, Union, TypedDict
 from collections import defaultdict
 from decimal import Decimal
 
-from numpy import float64, longdouble, mean as np_mean, array as np_array
+from numpy import float64, longdouble, mean as np_mean, array as np_array, ndarray as np_adarray
 from tqdm.std import trange
 from lib.CI_efficacy import CI_method_efficacy, NoCoverageException, plot_styles
-from lib.data_functions import float_to_str
+from lib.data_functions import float_to_str, frange
 from lib.math_functions import binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
-from typing import Callable, Iterable, List, Literal, Tuple, Union, TypedDict
 from numpy.random import binomial as binomial_experiment
 from scipy.stats import binom as binomial_distribution
 from matplotlib import pyplot as plt
 
 
-"""CI method for proportions"""
 CI_method_for_proportion = Callable[
     [int, int, float],
     Tuple[float, float]
 ]
 
-proportion_type = Union[str, float, Decimal]
+
+proportion_type = Union[str, float, float64, Decimal]
 
 # This is how dictionary type is defined
 class proportions_type_range_named(TypedDict):
@@ -29,6 +29,45 @@ class proportions_type_range_named(TypedDict):
 proportions_type_range = Tuple[proportion_type, proportion_type, proportion_type]
 
 proportions_type_list = Union[List[float], List[float64]]
+
+proportions_type = Union[proportions_type_list, proportions_type_range, proportions_type_range_named]
+
+
+
+class CI_method_for_proportion_efficacy_format():
+    def __init__(self, efficacy_toolkit):
+        self.efficacy_toolkit: CI_method_for_proportion_efficacy = efficacy_toolkit
+
+    proportion_str_max_len: int
+    coverage_str_max_len_total: int
+    coverage_str_max_len_afterpoint: int
+
+    def calculation_inputs(self):
+        inputs = (
+            f"CI_method = '{self.efficacy_toolkit.method_name}', confidence = {float_to_str(self.efficacy_toolkit.confidence*100)}%,\n"
+            f"n = {self.efficacy_toolkit.sample_size}, ps[{len(self.efficacy_toolkit.proportions)}] = ({self.efficacy_toolkit.proportions[0]}...{self.efficacy_toolkit.proportions[-1]},d={float(Decimal(str(self.efficacy_toolkit.proportions[1]))-Decimal(str(self.efficacy_toolkit.proportions[0])))})"
+        )
+        return inputs
+
+    # no of the functions should be used before their dependent this class properties assigned
+    # checks/assertions are not made for performance reasons
+    # these functions will be executed millions+ of times
+
+    def confidence(self, confidence_value):
+        return float_to_str(confidence_value)
+
+    def confidence_percent(self, confidence_value):
+        return f"{self.confidence(confidence_value*100)}%"
+
+    def proportion(self, proportion_value):
+        return f"{proportion_value:{self.proportion_str_max_len}}"
+
+    def coverage(self, single_coverage_value):
+        return f"{single_coverage_value:{self.coverage_str_max_len_total}.{self.coverage_str_max_len_afterpoint}f}"
+
+
+class _text():
+    pass
 
 
 class CI_method_for_proportion_efficacy(CI_method_efficacy):
@@ -77,23 +116,67 @@ class CI_method_for_proportion_efficacy(CI_method_efficacy):
 
     """
 
+
     def __init__(self, method: CI_method_for_proportion, method_name: str):
         self._method: CI_method_for_proportion = method
         self._method_name: str = method_name
 
+        self._f = CI_method_for_proportion_efficacy_format(self)
+        self._text: Dict[str, str] = {}
+
 
     @property
-    def proportions(self):
+    def confidence(self):
+        return self._confidence
+
+    @confidence.setter
+    def confidence(self, value: float):
+        if not 0.01 < value < 1: raise ValueError(
+            f"confidence level has to be a real value between 0 and 1. Got: confidence={value}")
+        self._confidence = value
+
+        self.f.coverage_str_max_len_total = max(len(str(self.confidence))+2, 5)
+        # 3 characters are reserved: 2 for tens and units, 1 for point
+        self.f.coverage_str_max_len_afterpoint = max(self._f.coverage_str_max_len_total-3, 2)
+
+
+    @property
+    def proportions(self) -> List[float64]:
         return self._proportions
 
+    def form_proportions_list(self,
+        proportions: proportions_type
+    ):
+        if type(proportions) is tuple:
+            # proportions is proportions_type_range
+            (start, end, step) = proportions
+            return list(frange(
+                Decimal(str(start)), Decimal(str(end)), Decimal(str(step))
+            ))
+        elif type(proportions) is proportions_type_range_named:
+            (start, end, step) = (proportions["start"], proportions["end"], proportions["step"])
+            return list(frange(
+                Decimal(str(start)), Decimal(str(end)), Decimal(str(step))
+            ))
+        elif type(proportions) is list:
+            # proportions is proportions_type_list
+            return [float64(p) for p in proportions]
+        else:
+            raise ValueError(
+                f"Somehow, the passed argument `proportions` is of forbidden type "
+                f"slipped into the function: \n{proportions}")
+
     @proportions.setter
-    def proportions(self, value: Iterable[float64]):
-        value = list(value)
+    def proportions(self, value: List[float64]):
         if not all([0 <= p <= 1 for p in value]): raise ValueError(
-            f"any true population proportion can only be a real value between 0 and 1")
+            f"a true population proportion can only be a real value between 0 and 1")
         if len(value) == 0: raise ValueError(
             f"list of proportions has to have at least 1 value")
-        self._proportions = list(value)
+        self._proportions = value
+
+        self.f.proportion_str_max_len = max(len(str(self.proportions[0])),
+                                            len(str(self.proportions[1])),
+                                            len(str(self.proportions[-1])))
 
 
     @property
@@ -101,11 +184,11 @@ class CI_method_for_proportion_efficacy(CI_method_efficacy):
         return self._coverage
 
     @coverage.setter
-    def coverage(self, value: List[longdouble]):
+    def coverage(self, value: Union[List[longdouble], np_adarray]):
         self._coverage = value
         self._average_coverage: longdouble = np_mean(value, dtype=longdouble)
         self._average_deviation: longdouble = np_mean(
-            abs(np_array(value) - (self.confidence*100)), dtype=longdouble)
+            abs(np_array(value) - (self.confidence*100)), dtype=longdouble)        
 
 
     @property
@@ -118,10 +201,24 @@ class CI_method_for_proportion_efficacy(CI_method_efficacy):
         return self._average_deviation
 
 
+    @property
+    def f(self):
+        """Variables defined for internal formatting that depend on certain input variables"""
+        return self._f
+
+
+    @property
+    def text(self):
+        """
+        Some text representations that are universal across the class
+        and depend on certain inputs
+        """
+        # return self._text_format
+
 
     def calculate_coverage_randomly(self,
                                     sample_size: int,
-                                    proportions: Iterable[float64],
+                                    proportions: proportions_type,
                                     confidence: float,
                                     n_of_experiments: int = 20000
                                     ):
@@ -143,13 +240,18 @@ class CI_method_for_proportion_efficacy(CI_method_efficacy):
         This list is `coverage`, and is saved to `self.coverage`.
         """
         self.confidence = confidence
-        self.proportions = list(proportions)
+        self.proportions = self.form_proportions_list(proportions)
         self.sample_size = sample_size
 
         if __debug__ is True:
-            print(f"""CI_method = "{self.method_name}", calculation_method = random simulation,
-n = {sample_size}, ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
-confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_experiments}""")
+            print(
+                self.f.calculation_inputs() + ",\n"
+                f"calculation_method = random simulation, " +
+                f"n_of_experiments = {n_of_experiments}"
+            )
+#             print(f"""CI_method = "{self.method_name}", calculation_method = random simulation,
+# n = {sample_size}, ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
+# confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_experiments}""")
 
         coverage = []
 
@@ -196,7 +298,7 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
 
     def calculate_coverage_analytically(self,
                                     sample_size: int,
-                                    proportions: Iterable[float64],
+                                    proportions: proportions_type,
                                     confidence: float,
                                     z_precision: Union[float, Literal['auto']] = 'auto'
                                     ):
@@ -217,16 +319,21 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
         This list is `coverage`, and is saved to `self.coverage`.
         """
         self.confidence = confidence
-        self.proportions = list(proportions)
+        self.proportions = self.form_proportions_list(proportions)
         self.sample_size = sample_size
 
         if z_precision == 'auto':
             z_precision = get_binomial_z_precision(confidence)
 
         if __debug__ is True:
-            print(f"""CI_method = "{self.method_name}", calculation_method = analytical approximation,
-n = {sample_size}, ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
-confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.2f}""")
+            print(
+                self.f.calculation_inputs() + ",\n"
+                f"calculation_method = analytical approximation, " +
+                f"z_precision = {z_precision:5.2f}"
+            )
+#             print(f"""CI_method = "{self.method_name}", calculation_method = analytical approximation,
+# n = {sample_size}, ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
+# confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.2f}""")
 
         coverage = []
 
@@ -372,7 +479,7 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
 
     def calculate_coverage_and_show_plot(self,
                                         sample_size: int,
-                                        proportions: Iterable[float64],
+                                        proportions: proportions_type,
                                         confidence: float,
 
                                         plt_figure_title: str = "",
