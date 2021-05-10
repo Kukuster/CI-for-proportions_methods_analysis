@@ -1,29 +1,42 @@
 from collections import defaultdict
 from decimal import Decimal
+from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit, CImethodForProportion_efficacyToolkit_format, proportions_type
 
 from matplotlib.text import Text
-from lib.data_functions import float_to_str, float_to_str2
+from lib.data_functions import float_to_str, float_to_str2, precise_float_diff
 from typing import Callable, Iterable, List, Tuple, Union, Literal
 
-from lib.CI_efficacy import CI_method_efficacy, NoCoverageException, plot_styles
+from lib.CI_efficacy import CImethod_efficacyToolkit, NoCoverageException, plot_styles
 from lib.math_functions import binomial_distribution_pmf, binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 import matplotlib.ticker as ticker
 from tqdm.std import trange
 from numpy.random import binomial as binomial_experiment
-from numpy import float64, longdouble, sum as np_sum, mean as np_mean, ndarray as np_ndarray, zeros as np_zeros, ceil as np_ceil, append as np_append
+from numpy import float64, longdouble, sum as np_sum, mean as np_mean, array as np_array, ndarray as np_ndarray, zeros as np_zeros, ceil as np_ceil, append as np_append
 
 
 
-"""CI method for differemce between two proportions"""
 CI_method_for_diff_betw_two_proportions = Callable[
     [int, int, int, int, Union[float, None], Union[float, None]],
     Tuple[float, float]
 ]
 
 
-class CI_method_for_diff_betw_two_proportions_efficacy(CI_method_efficacy):
+class CImethodForDiffBetwTwoProportions_efficacyToolkit_format(CImethodForProportion_efficacyToolkit_format):
+    def __init__(self, efficacy_toolkit):
+        self.efficacy_toolkit: CImethodForDiffBetwTwoProportions_efficacyToolkit = efficacy_toolkit
+
+    def calculation_inputs(self):
+        inputs = (
+            f"CI_method = '{self.efficacy_toolkit.method_name}', confidence = {float_to_str(self.efficacy_toolkit.confidence*100)}%,\n"
+            f"n1 = {self.efficacy_toolkit.sample_size1}, n2 = {self.efficacy_toolkit.sample_size2}\n"
+            f"ps[{len(self.efficacy_toolkit.proportions)}] = ({self.efficacy_toolkit.proportions[0]}...{self.efficacy_toolkit.proportions[-1]},d={precise_float_diff(self.efficacy_toolkit.proportions[1], self.efficacy_toolkit.proportions[0])})"
+        )
+        return inputs
+
+
+class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_efficacyToolkit):
     """A toolkit for studying efficacy of a CI method for the difference between two proportions.
 
     Parameters
@@ -76,6 +89,8 @@ class CI_method_for_diff_betw_two_proportions_efficacy(CI_method_efficacy):
         self._method: CI_method_for_diff_betw_two_proportions = method
         self._method_name: str = method_name
 
+        self._f = CImethodForDiffBetwTwoProportions_efficacyToolkit_format(self)
+
 
     @property
     def sample_size1(self):
@@ -100,48 +115,17 @@ class CI_method_for_diff_betw_two_proportions_efficacy(CI_method_efficacy):
 
 
     @property
-    def proportions(self):
-        return self._proportions
-
-    @proportions.setter
-    def proportions(self, value: Iterable[float64]):
-        value = list(value)
-        if not all([0 <= p <= 1 for p in value]): raise ValueError(
-            f"any true population proportion can only be a real value between 0 and 1")
-        if len(value) == 0: raise ValueError(
-            f"list of proportions has to have at least 1 value")
-        self._proportions = list(value)
-
-
-    @property
-    def coverage(self):
-        return self._coverage
-
-    @coverage.setter
-    def coverage(self, value: np_ndarray):
-        self._coverage = value
-        self._average_coverage: longdouble = np_mean(value, dtype=longdouble)
-        self._average_deviation: longdouble = np_mean(
-            abs(value - (self.confidence*100)), dtype=longdouble)
-
-
-    @property
-    def average_coverage(self) -> longdouble:
-        return self._average_coverage
-
-
-    @property
-    def average_deviation(self) -> longdouble:
-        return self._average_deviation
+    def f(self) -> CImethodForDiffBetwTwoProportions_efficacyToolkit_format:
+        return self._f
 
 
     def calculate_coverage_randomly(self,
-                                    sample_size1: int,
-                                    sample_size2: int,
-                                    proportions: Iterable[longdouble],
-                                    confidence: float,
-                                    n_of_experiments: int = 10000
-                                    ):
+            sample_size1: int,
+            sample_size2: int,
+            proportions: proportions_type,
+            confidence: float,
+            n_of_experiments: int = 10000
+            ):
         """
         Calculates true coverage of confidence interval for the difference between two proportions
         produced by the `method` for the given desired `confidence` using a simulation
@@ -155,31 +139,22 @@ class CI_method_for_diff_betw_two_proportions_efficacy(CI_method_efficacy):
         This 2d square matrix is `coverage`, and is saved to `self.coverage`.
         """
         self.confidence = confidence
-        self.proportions = list(proportions)
+        self.proportions = self.form_proportions_list(proportions)
         self.sample_size1 = sample_size1
         self.sample_size2 = sample_size2
 
         if __debug__ is True:
-            print(f"""CI_method = "{self.method_name}", calculation_method = random simulation,
-n1 = {sample_size1}, n2 = {sample_size2},
-ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
-confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_experiments}""")
+            print(
+                self.f.calculation_inputs() + ",\n"
+                f"calculation_method = random simulation, " +
+                f"n_of_experiments = {n_of_experiments}"
+            )
 
         # n by n zero matrix, where n is the number of tested probabilities (actual population proportions)
         coverage = np_zeros((len(self.proportions),len(self.proportions)), dtype=longdouble)
 
         # The return value of this function will be cached (this is not necessary)
         z = normal_z_score_two_tailed(p=confidence)
-
-
-        # this will be the maximum length of str representation of any proportion
-        p_str_len = max(len(str(self.proportions[0])),
-                        len(str(self.proportions[1])),
-                        len(str(self.proportions[-1])))
-        # 2 more chars than the `confidence` str representation is enough for displaying coverage
-        cov_str_len_total = max(len(str(self.confidence))+2, 5)
-        # 3 characters are reserved: 2 for tens and units, 1 for point
-        cov_str_len_afterpoint = max(cov_str_len_total-3, 2)
 
         progress_bar_str = "p1={}; p2={} => cov={}%"
         """
@@ -196,9 +171,9 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
             for j in range(i, len(self.proportions)):
                 (prob_x1, prob_x2) = self.proportions[i], self.proportions[j]
                 delta = abs(prob_x2 - prob_x1)
-
                 x1 = binomial_experiment(sample_size1, prob_x1, n_of_experiments)
                 x2 = binomial_experiment(sample_size2, prob_x2, n_of_experiments)
+
                 CIs = [self.method(x1[k], sample_size1, x2[k], sample_size2, confidence)
                                                     for k in range(0, n_of_experiments)]
                 covered = [int(CI[0] < delta < CI[1]) for CI in CIs]
@@ -209,26 +184,25 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
                 coverage[i][j] = coverage[j][i] = thiscoverage
 
                 t.set_description(progress_bar_str.format(
-                    f"{prob_x1:{p_str_len}}", f"{prob_x2:{p_str_len}}",
-                    f"{thiscoverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}"))
+                    self.f.proportion(prob_x1), self.f.proportion(prob_x2),
+                    self.f.coverage(thiscoverage)))
 
         self.coverage = coverage
         t.set_description(progress_bar_str.format(
-            "*", "*", f"{self.average_coverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}"))
-        print(f"average confidence level {self.average_coverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}")
-        print(f"average deviation from {float_to_str(self.confidence*100)}% = {self.average_deviation:{cov_str_len_total}.{cov_str_len_afterpoint}f} (coverage %)")
+            "*", "*", self.f.coverage(self.average_coverage)))
+        print(f"average confidence level {self.f.coverage(self.average_coverage)}")
+        print(f"average deviation from {self.f.confidence_percent} = {self.f.coverage(self.average_deviation)} (coverage %)")
         print("")
-
         return self.coverage
 
 
     def calculate_coverage_analytically(self,
-                                    sample_size1: int,
-                                    sample_size2: int,
-                                    proportions: Iterable[longdouble],
-                                    confidence: float,
-                                    z_precision: Union[float, Literal['auto']] = 'auto'
-                                    ):
+            sample_size1: int,
+            sample_size2: int,
+            proportions: proportions_type,
+            confidence: float,
+            z_precision: Union[float, Literal['auto']] = 'auto'
+            ):
         """
         Calculates true coverage of confidence interval for the difference between two proportions
         produced by the `method` for the given desired `confidence` using
@@ -246,7 +220,7 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
         This 2d square matrix is `coverage`, and is saved to `self.coverage`.
         """
         self.confidence = confidence
-        self.proportions = list(proportions)
+        self.proportions = self.form_proportions_list(proportions)
         self.sample_size1 = sample_size1
         self.sample_size2 = sample_size2
 
@@ -254,21 +228,14 @@ confidence = {float_to_str(self.confidence*100)}%, n_of_experiments = {n_of_expe
             z_precision = get_binomial_z_precision(confidence)
 
         if __debug__ is True:
-            print(f"""CI_method = "{self.method_name}", calculation_method = analytical approximation,
-n1 = {sample_size1}, n2 = {sample_size2}, ps[{len(self.proportions)}] = ({self.proportions[0]}...{self.proportions[-1]},d={float(Decimal(str(self.proportions[1]))-Decimal(str(self.proportions[0])))}),
-confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.2f}""")
+            print(
+                self.f.calculation_inputs() + ",\n"
+                f"calculation_method = analytical approximation, " +
+                f"z_precision = {z_precision:5.2f}"
+            )
 
         # `n` by `n` 0-matrix, where `n` - the number of probabilities (population proportions)
         coverage = np_zeros((len(self.proportions),len(self.proportions)), dtype=longdouble)
-
-        # this will be the maximum length of str representation of any proportion
-        p_str_len = max(len(str(self.proportions[0])),
-                        len(str(self.proportions[1])),
-                        len(str(self.proportions[-1])))
-        # 2 more chars than the `confidence` str representation is enough for displaying coverage
-        cov_str_len_total = max(len(str(self.confidence))+2, 5)
-        # 3 characters are reserved: 2 for tens and units, 1 for point
-        cov_str_len_afterpoint = max(cov_str_len_total-3, 2)
 
         progress_bar_str = "p1={}; p2={} => cov={}%"
         """
@@ -282,10 +249,9 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
         t = trange(len(self.proportions),
                    desc=progress_bar_str.format("***","***","***"))
         for i in t:
-        # for i in range(0, len(self.proportions)):
             for j in range(i, len(self.proportions)):
                 (prob_x1, prob_x2) = self.proportions[i], self.proportions[j]
-                # (prob_x1, prob_x2) = left_diagonal_matrix[i][j]
+                delta = abs(prob_x2 - prob_x1)
 
                 """The entire range of a binomial distribution could be used"""
                 #x1_from, x1_to = (0, sample_size)
@@ -323,8 +289,6 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
                 x1s = range(x1_from, x1_to+1)
                 x2s = range(x2_from, x2_to+1)
 
-                delta = abs(prob_x2 - prob_x1)
-
                 CIs = [[
                     self.method(x1, self.sample_size1, x2, self.sample_size2, self.confidence)
                         for x2 in x2s] for x1 in x1s]
@@ -344,33 +308,30 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
 
                 coverage[i][j] = coverage[j][i] = thiscoverage
                 t.set_description(progress_bar_str.format(
-                    f"{prob_x1:{p_str_len}}", f"{prob_x2:{p_str_len}}",
-                    f"{thiscoverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}"))
+                    self.f.proportion(prob_x1), self.f.proportion(prob_x2),
+                    self.f.coverage(thiscoverage)))
 
         self.coverage = coverage
         t.set_description(progress_bar_str.format(
-            "*", "*", f"{self.average_coverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}"))
-        print(f"average confidence level {self.average_coverage:{cov_str_len_total}.{cov_str_len_afterpoint}f}")
-        print(f"average deviation from {float_to_str(self.confidence*100)}% = {self.average_deviation:{cov_str_len_total}.{cov_str_len_afterpoint}f} (coverage %)")
+            "*", "*", self.f.coverage(self.average_coverage)))
+        print(f"average confidence level {self.f.coverage(self.average_coverage)}")
+        print(f"average deviation from {self.f.confidence_percent} = {self.f.coverage(self.average_deviation)} (coverage %)")
         print("")
-
         return self.coverage
 
 
     def plot_coverage(self,
-                    plt_figure_title: str,
-                    title: str = "Coverage of {method_name}\nsamples: n1 = {sample_size1}, n2 = {sample_size2}",
-                    theme: plot_styles = "default",
-                    colors: Tuple[str,str,str,str,str] = ("gray", "purple", "white", "#b8df96", "green")
-                    ):
+            plt_figure_title: str,
+            title: str = "Coverage of {method_name}\nsamples: n1 = {sample_size1}, n2 = {sample_size2}",
+            theme: plot_styles = "default",
+            colors: Tuple[str,str,str,str,str] = ("gray", "purple", "white", "#b8df96", "green")
+            ):
         """
         Plots the `matplotlib.pyplot` figure given the data from previous coverage calculation and
         some captions and formatting.
         """
         if self.coverage is None: raise NoCoverageException(
             "you have to calculate coverage first before plotting it")
-
-        confidence_percent = Decimal(self.confidence*100)
 
         # this unpacked defaultdict trouble allows for optional formatting placeholders
         title = title.format(**defaultdict(str, 
@@ -390,7 +351,7 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
         for confidence=99% show colorbar from 90% to 100%;
         for confidence=99.9% show colorbar from 99% to 100%;
         """
-        vmin = 100-((100-confidence_percent)*10)
+        vmin = 100 - ( (100-(self.confidence*100))*10 )
         vmax = 100
 
         """
@@ -423,7 +384,7 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
         the expected coverage (confidence) and the actual coverage, float64 would do a lot better.
         This can be done, but some adjustments have to be made to colorbar and labels.
         """
-        im = ax.imshow(float64(self.coverage),
+        im = ax.imshow(float64(np_array(self.coverage)),
             cmap=cmap,
             norm=Normalize(float(vmin), vmax, True)
         )
@@ -431,11 +392,11 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
         # precision of "8" decimal places should be more than enough for colorbar ticks
         cb = fig.colorbar(im, format=ticker.FuncFormatter(lambda x, pos: (f'%.8f' % x).rstrip('0').rstrip('.')))
         # plot a dashed black line over *confidence* point on a colorbar
-        cb.ax.plot([0, 100], [confidence_percent, confidence_percent], '_:k')
+        cb.ax.plot([0, 100], [self.confidence*100, self.confidence*100], '_:k')
 
         # rewriting autogenerated colorbar ticks by adding one that corresponds to `confidence`
         colorbar_ticks = cb.ax.get_yticks()
-        colorbar_ticks = np_append(colorbar_ticks, float(confidence_percent))
+        colorbar_ticks = np_append(colorbar_ticks, float(self.confidence*100))
         cb.set_ticks(colorbar_ticks)
 
 
@@ -475,16 +436,16 @@ confidence = {float_to_str(self.confidence*100)}%, z_precision = {z_precision:5.
 
 
     def calculate_coverage_and_show_plot(self,
-                                        sample_size1: int,
-                                        sample_size2: int,
-                                        proportions: Iterable[longdouble],
-                                        confidence: float,
+            sample_size1: int,
+            sample_size2: int,
+            proportions: proportions_type,
+            confidence: float,
 
-                                        plt_figure_title: str = "",
-                                        title: str = "Coverage of {method_name}\nsamples: n1 = {sample_size1}, n2 = {sample_size2}",
-                                        theme: plot_styles = "default",
-                                        colors: Tuple[str,str,str,str,str] = ("gray", "purple", "white", "#b8df96", "green")
-                                        ):
+            plt_figure_title: str = "",
+            title: str = "Coverage of {method_name}\nsamples: n1 = {sample_size1}, n2 = {sample_size2}",
+            theme: plot_styles = "default",
+            colors: Tuple[str,str,str,str,str] = ("gray", "purple", "white", "#b8df96", "green")
+            ):
         self.calculate_coverage_analytically(sample_size1, sample_size2, proportions, confidence)
         self.plot_coverage(plt_figure_title, title, theme, colors)
         self.show_plot()

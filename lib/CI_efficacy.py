@@ -22,7 +22,7 @@ class NoPlotException(Exception):
     """Exception raised when a user haven't plotted the coverage before doing operations on the plot"""
 
 
-class CI_method_efficacy(ABC):
+class CImethod_efficacyToolkit(ABC):
     """A template for toolkit for studying efficacy of a particular CI method.
     A class has to inherit from this with specific implementations for studying 
     a CI method of particular kind (for population mean, for population proportion, etc.)

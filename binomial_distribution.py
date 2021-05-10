@@ -2,7 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 import matplotlib.ticker as ticker
-from lib.CI_efficacy import CI_method_efficacy, NoCoverageException
+from lib.CI_efficacy import CImethod_efficacyToolkit, NoCoverageException
 from lib.data_functions import float_to_str
 from lib.math_functions import binomial_distribution_two_tailed_range, normal_z_score_two_tailed
 from typing import Callable, Generator, Iterable, List, Tuple, Union, Literal

@@ -6,9 +6,9 @@ from matplotlib.colors import LinearSegmentedColormap, Normalize
 
 import numpy as np
 from lib.methods_for_CI_for_diff_betw_two_proportions import Z_test_combined, Z_test_pooled, Z_test_unpooled, Miettinen_and_Nurminen
-from lib.CI_efficacy_diff_betw_two_proportions import CI_method_for_diff_betw_two_proportions_efficacy
+from lib.CI_efficacy_diff_betw_two_proportions import CImethodForDiffBetwTwoProportions_efficacyToolkit
 from lib.data_functions import frange
-from lib.CI_efficacy_proportion import CI_method_for_proportion_efficacy
+from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit
 from lib.methods_for_CI_for_proportions import wald_interval, wilson_score_interval
 
 
@@ -20,7 +20,7 @@ print("""
 """)
 # z_precisions = (4.06, 4.9)
 # for i, z_precision in enumerate(z_precisions):
-CI_tests: List[CI_method_for_diff_betw_two_proportions_efficacy] = []
+CI_tests: List[CImethodForDiffBetwTwoProportions_efficacyToolkit] = []
 
 for args in [
     {
@@ -190,7 +190,7 @@ for args in [
     #     "confidence": 0.95
     # },
 ]:
-    CI_test = CI_method_for_diff_betw_two_proportions_efficacy(
+    CI_test = CImethodForDiffBetwTwoProportions_efficacyToolkit(
         args["method"], args["method_name"])
     
     if "z_precision" in args.keys():
