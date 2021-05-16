@@ -6,14 +6,14 @@ from numpy import float64, longdouble
 
 def float_to_str(inputValue: Union[float, Decimal, float64, longdouble], precision: int = 10):
     """
-    Formats float or Decimal to a string with a specific decimal precision.
+    Formats fractional float or Decimal to a string with a specific decimal precision.
     Has decimal format
     """
     return (f'%.{precision}f' % longdouble(inputValue)).rstrip('0').rstrip('.')
 
 def float_to_str2(inputValue: Union[float, Decimal, float64, longdouble]):
     """
-    Formats float or Decimal to a string.
+    Formats fractional float or Decimal to a string.
     May have scientific format. Doesn't round. Displays integer format if decimal part is 0
     """
     return str(longdouble(inputValue)).rstrip('0').rstrip('.')

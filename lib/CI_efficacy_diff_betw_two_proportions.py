@@ -1,19 +1,17 @@
+from typing import Callable, Tuple, Union, Literal
 from collections import defaultdict
-from decimal import Decimal
-from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit, CImethodForProportion_efficacyToolkit_format, proportions_type
 
-from matplotlib.text import Text
-from lib.data_functions import float_to_str, float_to_str2, precise_float_diff
-from typing import Callable, Iterable, List, Tuple, Union, Literal
-
-from lib.CI_efficacy import CImethod_efficacyToolkit, NoCoverageException, plot_styles
-from lib.math_functions import binomial_distribution_pmf, binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
+from numpy import float64, longdouble, sum as np_sum, array as np_array, zeros as np_zeros, ceil as np_ceil, append as np_append
+from numpy.random import binomial as binomial_experiment
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 import matplotlib.ticker as ticker
 from tqdm.std import trange
-from numpy.random import binomial as binomial_experiment
-from numpy import float64, longdouble, sum as np_sum, mean as np_mean, array as np_array, ndarray as np_ndarray, zeros as np_zeros, ceil as np_ceil, append as np_append
+
+from lib.math_functions import binomial_distribution_pmf, binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
+from lib.data_functions import float_to_str, precise_float_diff
+from lib.CI_efficacy import NoCoverageException, plot_styles
+from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit, CImethodForProportion_efficacyToolkit_format, proportions_type
 
 
 
@@ -28,12 +26,12 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit_format(CImethodForPropor
         self.efficacy_toolkit: CImethodForDiffBetwTwoProportions_efficacyToolkit = efficacy_toolkit
 
     def calculation_inputs(self):
-        inputs = (
+        printed_inputs = (
             f"CI_method = '{self.efficacy_toolkit.method_name}', confidence = {float_to_str(self.efficacy_toolkit.confidence*100)}%,\n"
             f"n1 = {self.efficacy_toolkit.sample_size1}, n2 = {self.efficacy_toolkit.sample_size2}\n"
             f"ps[{len(self.efficacy_toolkit.proportions)}] = ({self.efficacy_toolkit.proportions[0]}...{self.efficacy_toolkit.proportions[-1]},d={precise_float_diff(self.efficacy_toolkit.proportions[1], self.efficacy_toolkit.proportions[0])})"
         )
-        return inputs
+        return printed_inputs
 
 
 class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_efficacyToolkit):
@@ -42,7 +40,7 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
     Parameters
     ----------
     method : CI_method
-        a method for calculating CI for the difference between two proportions
+        a studied method for calculating CI for the difference between two proportions
 
     method_name : str
         a human-readable name of the method.
@@ -50,14 +48,15 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
     Attributes
     ----------
     method : CI_method
-        a method for calculating CI for the difference between two proportions
+        a studied method for calculating CI for the difference between two proportions
 
     method_name : str
         a human-readable name of the method.
 
     confidence : float
         A number between 0 and 1.
-        Confidence interval - coverage that you want to get.
+        Confidence interval - coverage that you want to get
+        (see frequentist definition of confidence interval).
 
     sample_size1 : int
         Number of trials in the first sample
@@ -73,12 +72,25 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
         Coverage represents a proportion of cases that fall under the confidence interval produced
         by the given `method` for a particular case of two proportions from the given list.
         User can assess the efficacy of a CI method by comparing these values to the `confidence`.
+         - Values `< confidence` mean the `method` is more likely to cause a type I error.
+         In simple words, this is bad because you would not be able say
+         you are `confidence*100`% confident that the true population proportion
+         lies within the interval calculated by the `method`.
+         - Values `> confidence` mean the `method` is even less likely to cause a type I error,
+         but may be more likely to cause a type II error.
+         In simple words, it doesn't necessarily mean the `method` is bad, but it's
+         just "concervative". Whether it is way too concenrvative or not is up to you.
+         If you pass `0.95` (95%) to the `method`, and it gives you 99.5% coverage, 
+         it is hell of a concervative method.
 
     average_coverage : np.longdouble
         average of all values in `coverage`
 
     average_deviation : np.longdouble
-        average of all values in `coverage`
+        average deviation of all values in `coverage` from `confidence`
+
+    f : CImethodForDiffBetwTwoProportions_efficacyToolkit_format
+        Formatting helper. See the class
 
     figure : matplotlib.figure.Figure
         a matplotlib figure that's being generated by plotting the `coverage`
@@ -134,7 +146,8 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
         Number of trials for both samples are `sample_size1` and `sample_size2`.
 
         Two proportions for samples 1 and 2 are taken from the list `proportions`,
-        each against each, producing 2d square matrix of results for each pair of proportions.
+        each against each, producing 2d square matrix of results,
+        a value for each pair of proportions.
 
         This 2d square matrix is `coverage`, and is saved to `self.coverage`.
         """
@@ -215,7 +228,8 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
         Number of trials for both samples are `sample_size1` and `sample_size2`.
 
         Two proportions for samples 1 and 2 are taken from the list `proportions`,
-        each against each, producing 2d square matrix of results for each pair of proportions.
+        each against each, producing 2d square matrix of results,
+        a value for each pair of proportions.
 
         This 2d square matrix is `coverage`, and is saved to `self.coverage`.
         """
@@ -253,7 +267,7 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
                 (prob_x1, prob_x2) = self.proportions[i], self.proportions[j]
                 delta = abs(prob_x2 - prob_x1)
 
-                """The entire range of a binomial distribution could be used"""
+                """The entire range of the binomial distribution could be used"""
                 #x1_from, x1_to = (0, sample_size)
                 #x2_from, x2_to = (0, sample_size)
                 """
@@ -265,24 +279,27 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
                 with a normal distribution.
 
                 Let's say we need to consider the span covering 99.999% percent of the mass
-                of the binomial distribution. According to the normal distribution, this would be
-                a range that spans 4.42 standard deviations from the mean on both sides.
-                Given a somewhat conservative implementation of the algorithm, we could say that
-                this would almost certainly cover at least 99.999% of a binomial distribution
-                `Binom(n,p)` for most values of `n` and `p`.
+                of the two-variate binomial distribution. According to the normal distribution,
+                this would be a range that spans 4.42 standard deviations from the mean on both
+                sides for both single-variate binomial distribution from which the two-variate one
+                is constructed. 
+                The span of 4.42 sigma would cover around 99.999% of a binomial distribution
+                `Binom(n,p)` for most values of `n` and `p`. This would nail it for 95%CI, but
+                what if a user wants to ask for 99.999%CI, and we are only considering 99.999%
+                of the binomial distribution? We'd need to consider much more expansive range
+                in our calculations.
 
-                Let's assume we need:
-                for 95% confidence         => 99.995%         of the distribution
-                for 99% confidence         => 99.999%         of the distribution
-                for 99.9% confidence       => 99.9999%        of the distribution
-                for 99.99% confidence      => 99.999_99%      of the distribution
+                We would need something like this:
+                for 95% confidence         => 99.995%         of the distribution (4.056 sigma)
+                for 99% confidence         => 99.999%         of the distribution (4.417 sigma)
+                for 99.9% confidence       => 99.9999%        of the distribution (4.892 sigma)
+                for 99.99% confidence      => 99.999_99%      of the distribution (5.327 sigma)
                 for significant range of 5 sigma:
-                for 99.999_943% confidence => 99.999_999_943% of the distribution
+                for 99.999_943% confidence => 99.999_999_943% of the distribution (6.199 sigma)
                 etc.
 
-                This, precision is to be determined given the confidence. General formula:
-                p_precision = 1-((1-confidence)/1000)
-                z_precision = normal_z_score_two_tailed(p_precision)
+                Thus, precision is to be determined given the `confidence`. A specific formula
+                is used to figure out the optimal `z_precision`.
                 """
                 x1_from, x1_to = binomial_distribution_two_tailed_range(n=sample_size1, p=prob_x1, sds=z_precision)
                 x2_from, x2_to = binomial_distribution_two_tailed_range(n=sample_size2, p=prob_x2, sds=z_precision)
@@ -293,6 +310,7 @@ class CImethodForDiffBetwTwoProportions_efficacyToolkit(CImethodForProportion_ef
                     self.method(x1, self.sample_size1, x2, self.sample_size2, self.confidence)
                         for x2 in x2s] for x1 in x1s]
 
+                # Array of `1`s and `0`s
                 # int constructor could be used, but longdouble is used to provide better precision
                 covered = [[longdouble(CIs[i1][i2][0] < delta < CIs[i1][i2][1])
                                                  for i2 in range(len(CIs[i1]))]

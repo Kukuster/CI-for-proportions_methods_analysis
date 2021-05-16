@@ -4,7 +4,7 @@ from math import sqrt as math_sqrt
 from functools import lru_cache
 
 
-@lru_cache(50000)
+@lru_cache(100_000)
 def wald_interval(x: int, n: int, conflevel: float = 0.95):
     # LaTeX: $$(w^-, w^+) = \hat{p}\,\pm\,z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
     """Calculates confidence interval for proportions using Wald Interval method
@@ -32,7 +32,7 @@ def wald_interval(x: int, n: int, conflevel: float = 0.95):
     return ci
 
 
-@lru_cache(50000)
+@lru_cache(100_000)
 def wilson_score_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     # LaTeX: $$(w^-, w^+) = \frac{p + z^2/2n \pm z\sqrt{p(1-p)/n + z^2/4n^2}}{1+z^2/n}$$
     """Calculates confidence interval for proportions using Wilson Score Interval method
@@ -61,7 +61,7 @@ def wilson_score_interval(x: int, n: int, conflevel: Union[float, None] = 0.95, 
     return ci
 
 
-@lru_cache(50000)
+@lru_cache(100_000)
 def wilson_score_interval_continuity_corrected(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     # LaTeX:
     # $$w_{cc}^- = \frac{2np + z^2 - (z\sqrt{z^2 - 1/n + 4np(1-p) + (4p-2)} + 1)}{2(n+z^2)}$$
@@ -97,7 +97,7 @@ def wilson_score_interval_continuity_corrected(x: int, n: int, conflevel: Union[
     return ci
 
 
-@lru_cache(50000)
+@lru_cache(100_000)
 def wilson_score_interval_continuity_semicorrected(x: int, n: int, conflevel: Union[float, None] = 0.95, z: Union[float, None] = None):
     """Calculates confidence interval for proportions using two Wilson Score Interval methods
     (arithmetic mean of ordinary and continuity-corrected methods)

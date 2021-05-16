@@ -1,12 +1,13 @@
 from typing import Tuple
-from lib.math_functions import normal_z_score_two_tailed
-from numpy import sign, sqrt as np_sqrt, pi, cos, arccos
-# from math_functions import normal_z_score_two_tailed
-from math import sqrt as math_sqrt
 from functools import lru_cache
+from math import sqrt as math_sqrt
+
+from numpy import sign, sqrt as np_sqrt, pi, cos, arccos
+
+from lib.math_functions import normal_z_score_two_tailed
 
 
-@lru_cache(1_000_000)
+@lru_cache(100_000)
 def Z_test_unpooled(xT: int, nT: int, xC: int, nC: int, conflevel: float = 0.95) -> Tuple[float, float]:
     # LATEX: $$ (\delta^-, \delta^+) = \hat{p}_T - \hat{p}_C \pm z_{\alpha}\sqrt{\frac{\hat{p}_T (1 - \hat{p}_T)}{n_T} + \frac{\hat{p}_C (1 - \hat{p}_C)}{n_C}} $$
     """Calculates confidence interval for the difference between two proportions using Z test (unpooled) method

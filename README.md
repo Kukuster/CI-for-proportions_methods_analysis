@@ -11,14 +11,14 @@ An inspiraton for the library:
 
 ## PLAN (TODOs)
 
-### **1. Refactor main function**
+### **_V_ 1. Refactor main function**
 Both implementations of calculating coverage (`calculate_coverage_randomly` and `calculate_coverage_analytically`) in both toolkits (`CI_method_for_proportion_efficacy` and `CI_method_for_diff_betw_two_proportions_efficacy`) have way too much in common. Gonna DRY out a lot of code. Won't be easy though.
 
-### **2. Improve `proportions` interface**
+### **_V_ 2. Improve `proportions` interface**
 Proportions are passed to these functions in a wierd way.
 Let proportions be passed to functions as either `List[str]`, `List[float]` or `Tuple[str,str,str]`
 
-### **3. Improve automatic precision of analytical solution**
+### **_V_ 3. Improve automatic precision of analytical solution**
 `z_precision` should slightly increase with increasing `confidence`. It's been shown that simply making `z_precision` to correspond to `p_precision` that equals to a number 1000 times closer to 1 than `confidence` doesn't quite nail it. It does for lower `confidence`, but with confidence 99.99% and more, `z_precision` maybe should increase even more. It turns out, for `confidence = 99.99%` having `z_precision = 99.999_99%` is good, but for `99.999_943%` having `z_precision = 99.999_999_943%` isn't enough.
 
 ### **4. Tidy up & publish**

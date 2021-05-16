@@ -1,5 +1,4 @@
 from decimal import Decimal
-from lib.math_functions import get_binomial_z_precision
 from typing import List, Literal, Tuple, Union
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
@@ -24,24 +23,33 @@ CI_tests: List[CImethodForDiffBetwTwoProportions_efficacyToolkit] = []
 
 for args in [
     {
-        "method": Z_test_unpooled,
-        "method_name": f"Z test (unpooled)",
+        "method": Miettinen_and_Nurminen,
+        "method_name": f"Miettinen and Nurminen’s Likelihood Score Test",
         "sample_size1": 100,
         "sample_size2": 100,
-        "proportions": list(frange(Decimal('0.001'), Decimal('0.999'), Decimal('0.035'))),
-        "confidence": 0.90,
+        "proportions": list(frange(Decimal('0.001'), Decimal('0.999'), Decimal('0.01'))),
+        "confidence": 0.95,
+        "z_precision": "auto",
+    },
+    {
+        "method": Miettinen_and_Nurminen,
+        "method_name": f"Miettinen and Nurminen’s Likelihood Score Test",
+        "sample_size1": 200,
+        "sample_size2": 200,
+        "proportions": list(frange(Decimal('0.001'), Decimal('0.999'), Decimal('0.01'))),
+        "confidence": 0.95,
         "z_precision": "auto",
     },
 
-    {
-        "method": Z_test_unpooled,
-        "method_name": f"Z test (unpooled)",
-        "sample_size1": 100,
-        "sample_size2": 100,
-        "proportions": list(frange(Decimal('0.001'), Decimal('0.999'), Decimal('0.035'))),
-        "confidence": 0.95,
-        "n_of_experiments": 4000,
-    },
+    # {
+    #     "method": Z_test_unpooled,
+    #     "method_name": f"Z test (unpooled)",
+    #     "sample_size1": 100,
+    #     "sample_size2": 100,
+    #     "proportions": list(frange(Decimal('0.001'), Decimal('0.999'), Decimal('0.035'))),
+    #     "confidence": 0.95,
+    #     "n_of_experiments": 4000,
+    # },
     # {
     #     "method": Z_test_unpooled,
     #     "method_name": f"Z test (unpooled)",
@@ -69,15 +77,15 @@ for args in [
     #     "confidence": 0.9999,
     #     "z_precision": "auto",
     # },
-    {
-        "method": Z_test_unpooled,
-        "method_name": f"Z test (unpooled)",
-        "sample_size1": 10000,
-        "sample_size2": 10000,
-        "proportions": list(frange(Decimal('0.0001'), Decimal('0.0199'), Decimal('0.0005'))),
-        "confidence": 0.9999,
-        "z_precision": 4,
-    },
+    # {
+    #     "method": Z_test_unpooled,
+    #     "method_name": f"Z test (unpooled)",
+    #     "sample_size1": 10000,
+    #     "sample_size2": 10000,
+    #     "proportions": list(frange(Decimal('0.0001'), Decimal('0.0199'), Decimal('0.0005'))),
+    #     "confidence": 0.9999,
+    #     "z_precision": 4,
+    # },
     # {
     #     "method": Z_test_pooled,
     #     "method_name": f"Z test (pooled)",
