@@ -21,7 +21,11 @@ Let proportions be passed to functions as either `List[str]`, `List[float]` or `
 ### **_V_ 3. Improve automatic precision of analytical solution**
 `z_precision` should slightly increase with increasing `confidence`. It's been shown that simply making `z_precision` to correspond to `p_precision` that equals to a number 1000 times closer to 1 than `confidence` doesn't quite nail it. It does for lower `confidence`, but with confidence 99.99% and more, `z_precision` maybe should increase even more. It turns out, for `confidence = 99.99%` having `z_precision = 99.999_99%` is good, but for `99.999_943%` having `z_precision = 99.999_999_943%` isn't enough.
 
-### **4. Tidy up & publish**
+### **4. Implement more methods for calculating CI for the difference between two proportions**
+Description of the R library "Exact" has some references to scientific publications that describe alternative methods for CI for the difference between two proportions.
+[https://cran.r-project.org/web/packages/Exact/index.html](https://cran.r-project.org/web/packages/Exact/index.html)
+
+### **5. Tidy up & publish**
  - remove all imports of whole libraries, leave only imports of necessary parts (i guess this is the right way to do it)
  - prepare structure to publish as a package
  - publish as `pip` package

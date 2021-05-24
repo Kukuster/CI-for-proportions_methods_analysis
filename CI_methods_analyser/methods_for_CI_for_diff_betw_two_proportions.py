@@ -4,7 +4,7 @@ from math import sqrt as math_sqrt
 
 from numpy import sign, sqrt as np_sqrt, pi, cos, arccos
 
-from lib.math_functions import normal_z_score_two_tailed
+from CI_methods_analyser.math_functions import normal_z_score_two_tailed
 
 
 @lru_cache(100_000)

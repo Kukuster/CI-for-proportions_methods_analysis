@@ -1,11 +1,11 @@
-from collections import defaultdict
 from typing import Literal, Tuple, Union
+from collections import defaultdict
+
+import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 
-import numpy as np
-from lib.data_functions import float_to_str
-
+from CI_methods_analyser.data_functions import float_to_str
 
 
 def normalize_data(data: np.ndarray) -> np.ndarray:
@@ -144,6 +144,4 @@ def plot_relative_difference(
 
     else:
         raise ValueError("this function is not supported for data of shape other than 1d or 2d")
-
-
 

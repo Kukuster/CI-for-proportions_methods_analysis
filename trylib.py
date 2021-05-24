@@ -4,11 +4,11 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 
 import numpy as np
-from lib.methods_for_CI_for_diff_betw_two_proportions import Z_test_combined, Z_test_pooled, Z_test_unpooled, Miettinen_and_Nurminen
-from lib.CI_efficacy_diff_betw_two_proportions import CImethodForDiffBetwTwoProportions_efficacyToolkit
-from lib.data_functions import frange
-from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit
-from lib.methods_for_CI_for_proportions import wald_interval, wilson_score_interval
+from CI_methods_analyser.methods_for_CI_for_diff_betw_two_proportions import Z_test_combined, Z_test_pooled, Z_test_unpooled, Miettinen_and_Nurminen
+from CI_methods_analyser.CI_efficacy_diff_betw_two_proportions import CImethodForDiffBetwTwoProportions_efficacyToolkit
+from CI_methods_analyser.data_functions import frange
+from CI_methods_analyser.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit
+from CI_methods_analyser.methods_for_CI_for_proportion import wald_interval, wilson_score_interval
 
 
 
@@ -226,47 +226,6 @@ for args in [
         )
 
     CI_tests.append(CI_test)
-
-
-
-# difference = abs(CI_tests[1].coverage - CI_tests[0].coverage)
-def plot_2d_difference(
-    data1: np.ndarray,
-    data2: np.ndarray,
-    plt_figure_num: Union[str, int],
-    theme: Literal["dark_background", "classic", "default"] = "default"
-):
-
-    plt.style.use(theme)
-
-    data1 = data1/100 # normalize to range (0, 1)
-    data2 = data2/100 # normalize to range (0, 1)
-    relative_diff = (abs(data1-data2)/(1 - ((data1+data2)/2)))/2 # spans from 0 to 1
-
-    nodes = [0, 0.001, 0.01, 0.05, 1]
-    colors = ["black", "blue", "green", "yellow", "red"]
-    cmap = LinearSegmentedColormap.from_list("", list(zip(nodes, colors)))
-    cmap.set_under("black")
-
-    # plt.matshow(data)
-    fig, ax = plt.subplots()
-    fig.canvas.set_window_title(str(plt_figure_num))
-
-    top = 1
-    im = ax.imshow(relative_diff, cmap=cmap, norm=Normalize(0, top, True))
-    ax.set_title(str(plt_figure_num)+" (difference of %% of coverage)")
-    fig.colorbar(im, extend="max")
-
-    print([(colors[i], round(nodes[i]*top, 8)) for i in range(len(nodes))])
-
-    return fig
-
-
-# plot_2d_difference(data1=CI_tests[0].coverage,
-#           data2=CI_tests[1].coverage,
-#           plt_figure_num=f"Z test (unpooled) precision {get_binomial_z_precision(CI_tests[0].confidence)} vs {8}",
-#     theme="dark_background")
-# plot_2d_difference(difference, plt_figure_num=2, theme="classic")
 
 
 

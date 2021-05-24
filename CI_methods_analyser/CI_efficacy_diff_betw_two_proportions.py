@@ -8,10 +8,10 @@ from matplotlib.colors import LinearSegmentedColormap, Normalize
 import matplotlib.ticker as ticker
 from tqdm.std import trange
 
-from lib.math_functions import binomial_distribution_pmf, binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
-from lib.data_functions import float_to_str, precise_float_diff
-from lib.CI_efficacy import NoCoverageException, plot_styles
-from lib.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit, CImethodForProportion_efficacyToolkit_format, proportions_type
+from CI_methods_analyser.math_functions import binomial_distribution_pmf, binomial_distribution_two_tailed_range, get_binomial_z_precision, normal_z_score_two_tailed
+from CI_methods_analyser.data_functions import float_to_str, precise_float_diff
+from CI_methods_analyser.CI_efficacy import NoCoverageException, plot_styles
+from CI_methods_analyser.CI_efficacy_proportion import CImethodForProportion_efficacyToolkit, CImethodForProportion_efficacyToolkit_format, proportions_type
 
 
 
