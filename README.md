@@ -1,66 +1,31 @@
-# CI methods efficacy analysis toolkit
-Measures efficacy of methods for calculating confidence interval.
+# CI methods analyser
+A toolkit for measuring efficacy of various methods for calculating confidence interval.
 Currently provides with a toolking for measuring efficacy of methods for confidence interval for the following statistics:
 
  - proportion
  - difference between two proportions
 
 An inspiraton for the library:
-[https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)
-
-
-## PLAN (TODOs)
-
-### **_V_ 1. Refactor main function**
-Both implementations of calculating coverage (`calculate_coverage_randomly` and `calculate_coverage_analytically`) in both toolkits (`CI_method_for_proportion_efficacy` and `CI_method_for_diff_betw_two_proportions_efficacy`) have way too much in common. Gonna DRY out a lot of code. Won't be easy though.
-
-### **_V_ 2. Improve `proportions` interface**
-Proportions are passed to these functions in a wierd way.
-Let proportions be passed to functions as either `List[str]`, `List[float]` or `Tuple[str,str,str]`
-
-### **_V_ 3. Improve automatic precision of analytical solution**
-`z_precision` should slightly increase with increasing `confidence`. It's been shown that simply making `z_precision` to correspond to `p_precision` that equals to a number 1000 times closer to 1 than `confidence` doesn't quite nail it. It does for lower `confidence`, but with confidence 99.99% and more, `z_precision` maybe should increase even more. It turns out, for `confidence = 99.99%` having `z_precision = 99.999_99%` is good, but for `99.999_943%` having `z_precision = 99.999_999_943%` isn't enough.
-
-### **4. Implement more methods for calculating CI for the difference between two proportions**
-Description of the R library "Exact" has some references to scientific publications that describe alternative methods for CI for the difference between two proportions.
-[https://cran.r-project.org/web/packages/Exact/index.html](https://cran.r-project.org/web/packages/Exact/index.html)
-
-### **5. Tidy up & publish**
- - remove all imports of whole libraries, leave only imports of necessary parts (i guess this is the right way to do it)
- - prepare structure to publish as a package
- - publish as `pip` package
-
-### **Also:**
-see `BACKLOG.md`
-
+["Five Confidence Intervals for Proportions That You Should Know About" by Dr. Dennis Robert](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)
 
 
 ## NOTES
+
+### !!!! Best practices publishing a package !!!!
+https://realpython.com/pypi-publish-python-package/#preparing-your-package-for-publication
+
 
 ### Methods for measuring efficacy of CI methods
 Two ways can be used to calculate efficacy of CI methods:
  - approximately, with random simulation (as implemented in R by Dr. Dennis Robert, see link above)
  - precisely, with the analytical solution
 
-Both methods are implemented here for CI for both statistics: *proportion*, and *difference between two proportions*. For precise analyticsl solution a potentially lossy optimization has been made. It's regulated with parameter `z_precision` which is by default calculated automatically and it has its drawbacks (see PLAN section).
+Both methods are implemented here for CI for both statistics: *proportion*, and *difference between two proportions*. For precise analytical solution a potentially lossy optimization was made. It's regulated with parameter `z_precision` which is by default calculated automatically and it has its drawbacks (see PLAN section).
 
 
-### Figuring out how to use certain advanced methods for calculating CI for the *difference between two proportions*
-
-Start with this document:
-
-**[https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Confidence_Intervals_for_the_Difference_Between_Two_Proportions.pdf](https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Confidence_Intervals_for_the_Difference_Between_Two_Proportions.pdf) **
-
-Figure out how exaclty to implement the methods and evaluate their efficacy.
-
-E.g. as I understood  the **Farrington and Manning’s Score** method, the main idea is to calculate 2 values for delta0, that is the confidence interval for the delta (which equals to p1_hat - p2_hat)
-
-For this, we calculate everything and get zFMD = F(delta0), where F is some sick humongous function over the unknown variable - delta0. It involves polynomials of delta0 up to 4th power, cosines and arccosines of that, and a square root over all that. Then the the delta0 is calculated as a solution for zFMD = F(delta0) for zFMD equals +-z-score for the given alpha. It's very likely that it is impossible to solve this analytically (hence such a recipe). Therefore, I have to figure out a way to implement numerical methods for solving this in general form.
-
-By the way, I think "MLE" there means "Maximum Likelihood Estimate", but I'm not sure.
-
-## <u>Links</u>
+## <u>Various links</u>
 **1. Equivalence and Noninferiority Testing (as I understand, are fancy terms for 2-sided and 1-sided p tests for the difference between two proportions)**
+ - **[https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Confidence_Intervals_for_the_Difference_Between_Two_Proportions.pdf](https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Confidence_Intervals_for_the_Difference_Between_Two_Proportions.pdf) **
  - **[https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Non-Inferiority_Tests_for_the_Difference_Between_Two_Proportions.pdf](https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/PASS/Non-Inferiority_Tests_for_the_Difference_Between_Two_Proportions.pdf) **
  - [https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Two_Proportions-Non-Inferiority,_Superiority,_Equivalence,_and_Two-Sided_Tests_vs_a_Margin.pdf](https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Two_Proportions-Non-Inferiority,_Superiority,_Equivalence,_and_Two-Sided_Tests_vs_a_Margin.pdf) 
  - [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3019319/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3019319/)
