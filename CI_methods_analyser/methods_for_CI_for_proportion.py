@@ -1,7 +1,8 @@
 from typing import Union
-from CI_methods_analyser.math_functions import normal_z_score_two_tailed
-from math import sqrt as math_sqrt
 from functools import lru_cache
+from math import sqrt as math_sqrt
+
+from CI_methods_analyser.math_functions import normal_z_score_two_tailed
 
 
 @lru_cache(100_000)
