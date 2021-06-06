@@ -162,8 +162,8 @@ def Z_test_combined(xT: int, nT: int, xC: int, nC: int, conflevel: float = 0.95)
 
     `z` - z score. If unset, calculated form the given *conflevel*
     """
-    one = Z_test_unpooled(xT, nT, xC, nC)
-    two =   Z_test_pooled(xT, nT, xC, nC)
+    one = Z_test_unpooled(xT, nT, xC, nC, conflevel)
+    two =   Z_test_pooled(xT, nT, xC, nC, conflevel)
     ci = (
         (one[0] + two[0])/2,
         (one[1] + two[1])/2
