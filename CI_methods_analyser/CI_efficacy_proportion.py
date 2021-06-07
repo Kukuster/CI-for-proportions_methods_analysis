@@ -404,8 +404,8 @@ class CImethodForProportion_efficacyToolkit(CImethod_efficacyToolkit):
             xlabel: str = "True Proportion (Population Proportion)",
             ylabel: str = "Coverage (%) for {confidence_percent}CI",
             theme: plot_styles = "default",
-            plot_color: str = "green",
-            line_color: str = "orange"
+            plot_color: str = "blue",
+            line_color: str = "red"
             ):
         """
         Plots the `matplotlib.pyplot` figure given the data from previous coverage calculation and

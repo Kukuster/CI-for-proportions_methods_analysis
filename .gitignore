@@ -4,5 +4,7 @@
 **/*__pycache__
 
 *.png
+!/docs/*.png
+
 /testlib*
 /typings/
