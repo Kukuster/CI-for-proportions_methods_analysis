@@ -465,9 +465,11 @@ class CImethodForProportion_efficacyToolkit(CImethod_efficacyToolkit):
             title: str = "Coverage of {method_name}\nsample size: n = {sample_size}",
             xlabel: str = "True Proportion (Population Proportion)",
             ylabel: str = "Coverage (%) for {confidence_percent}CI",
-            theme: plot_styles = "default"
+            theme: plot_styles = "default",
+            plot_color: str = "blue",
+            line_color: str = "red"
             ):
         self.calculate_coverage_analytically(sample_size, proportions, confidence)
-        self.plot_coverage(plt_figure_title, title, xlabel, ylabel, theme)
+        self.plot_coverage(plt_figure_title, title, xlabel, ylabel, theme, plot_color, line_color)
         self.show_plot()
 

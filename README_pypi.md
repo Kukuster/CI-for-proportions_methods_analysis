@@ -84,7 +84,7 @@ from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit
 toolkit(
     method=methods_for_CI_for_proportion.wald_interval, method_name="Wald Interval"
 ).calculate_coverage_and_show_plot(
-    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95
+    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95,
     plt_figure_title="Wald Interval coverage"
 )
 
@@ -101,7 +101,7 @@ from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit
 toolkit(
     method=methods_for_CI_for_proportion.wald_interval, method_name="Wald Interval"
 ).calculate_coverage_and_show_plot(
-    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95
+    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95,
     plt_figure_title="Wald Interval coverage",
     theme='dark_background', plot_color="green", line_color="orange"
 )
