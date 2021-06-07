@@ -12,7 +12,7 @@ requires = ["numpy", "matplotlib", "scipy", "tqdm"]
 # This call to setup() does all the work
 setup(
     name="CI_methods_analyser",
-    version="1.0.2",
+    version="1.1.0",
     description="Analyse efficacy of your own methods for calculating confidence interval",
 
     long_description=README_pypi,
