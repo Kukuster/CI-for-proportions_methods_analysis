@@ -60,7 +60,7 @@ input('press Enter to exit')
 
 The will output the image:
 
-![Wald Interval - real coverage](docs/wald_interval_p_0.001_0.999_0.01_n100_conf95.png)
+![Wald Interval - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/wald_interval_p_0.001_0.999_0.01_n100_conf95.png)
 
 The plot indicates overall bad performance of the method and particularly poor performance for extreme proportions. 
 
@@ -108,7 +108,7 @@ toolkit(
 input('press Enter to exit')
 ```
 
-![Wald Interval - real coverage (dark theme)](docs/wald_interval_p_0.001_0.999_0.01_n100_conf95_dark.png)
+![Wald Interval - real coverage (dark theme)](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/wald_interval_p_0.001_0.999_0.01_n100_conf95_dark.png)
 
 
 
@@ -148,7 +148,7 @@ toolkit(
 input('press Enter to exit')
 
 ```
-!["I'm telling ya" test - real coverage](docs/im_telling_ya_test_p_0.001_0.999_0.01_n100_conf95_dark.png)
+!["I'm telling ya" test - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/im_telling_ya_test_p_0.001_0.999_0.01_n100_conf95_dark.png)
 
 
 ```python
@@ -178,7 +178,7 @@ toolkit(
 input('press Enter to exit')
 ```
 
-!["God is my witness" score - real coverage](docs/God_is_my_witness_score_p_0.001_0.999_0.01_n100_conf95_dark.png)
+!["God is my witness" score - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/God_is_my_witness_score_p_0.001_0.999_0.01_n100_conf95_dark.png)
 
 
 ### <u>Testing methods for CI for the difference between two proportions</u>
@@ -209,7 +209,7 @@ input('press Enter to exit')
 ```
 
 
-![Z test (unpooled) - real coverage](docs/z_test_pooled_p_0.001_0.999_0.01_n1_100_n2_100_conf95.png)
+![Z test (unpooled) - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/z_test_pooled_p_0.001_0.999_0.01_n1_100_n2_100_conf95.png)
 
 As you can see, this test is generally very good for close proportions, unless proportions have extreme values [purple]
 
@@ -236,7 +236,7 @@ toolkit_d(
 input('press Enter to exit')
 ```
 
-![Z test (unpooled) - real coverage](docs/z_test_pooled_p_0.001_0.999_0.01_n1_100_n2_100_conf95_hotcolors.png)
+![Z test (unpooled) - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/z_test_pooled_p_0.001_0.999_0.01_n1_100_n2_100_conf95_hotcolors.png)
 
 
 <br>
