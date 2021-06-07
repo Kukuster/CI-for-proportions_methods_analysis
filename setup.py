@@ -5,17 +5,17 @@ from setuptools import setup
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+README_pypi = (HERE / "README_pypi.md").read_text()
 
 requires = ["numpy", "matplotlib", "scipy", "tqdm"]
 
 # This call to setup() does all the work
 setup(
     name="CI_methods_analyser",
-    version="1.0.1",
+    version="1.0.2",
     description="Analyse efficacy of your own methods for calculating confidence interval",
 
-    long_description=README,
+    long_description=README_pypi,
     long_description_content_type="text/markdown",
 
     url="https://github.com/Kukuster/CI_methods_analyser",

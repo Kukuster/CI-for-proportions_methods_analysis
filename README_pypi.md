@@ -9,18 +9,20 @@ This library was mainly inspired by the library:
 ["Five Confidence Intervals for Proportions That You Should Know About" by Dr. Dennis Robert](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)
 
 
-## Installation
-
-https://pypi.org/project/CI-methods-analyser/
+## Dependencies
+ - numpy
+ - scipy
+ - matplotlib
+ - tqdm
 
 ## Usage
 
-### <u>Testing Wald Interval - a popular method for calculating confidence interval for proportion</u>
+### **Testing Wald Interval - a popular method for calculating confidence interval for proportion**
 
 Wald Interval is defined as so:
 
 <div style="text-align: center; margin: auto">
-    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/png.latex?%5Cbg_black%20%28w%5E-%2C%20w%5E&plus;%29%20%3D%20%5Chat%7Bp%7D%5C%2C%5Cpm%5C%2Cz%5Csqrt%7B%5Cfrac%7B%5Chat%7Bp%7D%281-%5Chat%7Bp%7D%29%7D%7Bn%7D%7D" alt="$$ (w^-, w^+) = p\,\pm\,z\sqrt{\frac{p(1-p)}{n}} $$" />
+    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/png.latex?%5Cbg_white%20%28w%5E-%2C%20w%5E&plus;%29%20%3D%20%5Chat%7Bp%7D%5C%2C%5Cpm%5C%2Cz%5Csqrt%7B%5Cfrac%7B%5Chat%7Bp%7D%281-%5Chat%7Bp%7D%29%7D%7Bn%7D%7D" alt="$$ (w^-, w^+) = p\,\pm\,z\sqrt{\frac{p(1-p)}{n}} $$" />
 </div>
 
 
@@ -115,7 +117,7 @@ input('press Enter to exit')
 
 <br>
 
-### <u>Testing custom method for CI for proportion</u>
+### **Testing custom method for CI for proportion**
 
 You can implement your own methods and test them:
 
@@ -181,16 +183,16 @@ input('press Enter to exit')
 !["God is my witness" score - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/God_is_my_witness_score_p_0.001_0.999_0.01_n100_conf95_dark.png)
 
 
-### <u>Testing methods for CI for the difference between two proportions</u>
+### **Testing methods for CI for the difference between two proportions**
 
 Let's use the implemented **Pooled Z test**:
 
 <div style="text-align: center; margin: auto">
-    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/gif.latex?%5Cbg_black%20%28%5Cdelta%5E-%2C%20%5Cdelta%5E&plus;%29%20%3D%20%5Chat%7Bp%7D_T%20-%20%5Chat%7Bp%7D_C%20%5Cpm%20z_%7B%5Calpha%7D%5Csqrt%7B%5Cbar%7Bp%7D%281-%5Cbar%7Bp%7D%29%28%5Cfrac%7B1%7D%7Bn_T%7D&plus;%5Cfrac%7B1%7D%7Bn_C%7D%29%7D" alt="$$ (\delta^-, \delta^+) = \hat{p}_T - \hat{p}_C \pm z_{\alpha}\sqrt{\bar{p}(1-\bar{p})(\frac{1}{n_T}+\frac{1}{n_C})} $$" />
+    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/gif.latex?%5Cbg_white%20%28%5Cdelta%5E-%2C%20%5Cdelta%5E&plus;%29%20%3D%20%5Chat%7Bp%7D_T%20-%20%5Chat%7Bp%7D_C%20%5Cpm%20z_%7B%5Calpha%7D%5Csqrt%7B%5Cbar%7Bp%7D%281-%5Cbar%7Bp%7D%29%28%5Cfrac%7B1%7D%7Bn_T%7D&plus;%5Cfrac%7B1%7D%7Bn_C%7D%29%7D" alt="$$ (\delta^-, \delta^+) = \hat{p}_T - \hat{p}_C \pm z_{\alpha}\sqrt{\bar{p}(1-\bar{p})(\frac{1}{n_T}+\frac{1}{n_C})} $$" />
 </div>
 , where:
 <div style="text-align: center; margin: auto">
-    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/gif.latex?%5Cbg_black%20%5Cbar%7Bp%7D%20%3D%20%5Cfrac%7Bn_T%5Chat%7Bp%7D_T%20&plus;%20n_C%5Chat%7Bp%7D_C%7D%7Bn_T%20&plus;%20n_C%7D" alt="$$ \bar{p} = \frac{n_T\hat{p}_T + n_C\hat{p}_C}{n_T + n_C} $$" />
+    <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/gif.latex?%5Cbg_white%20%5Cbar%7Bp%7D%20%3D%20%5Cfrac%7Bn_T%5Chat%7Bp%7D_T%20&plus;%20n_C%5Chat%7Bp%7D_C%7D%7Bn_T%20&plus;%20n_C%7D" alt="$$ \bar{p} = \frac{n_T\hat{p}_T + n_C\hat{p}_C}{n_T + n_C} $$" />
 </div>
 
 
