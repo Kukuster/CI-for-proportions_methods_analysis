@@ -1,23 +1,31 @@
 # CI methods analyser
 A toolkit for measuring the efficacy of various methods for calculating a confidence interval.
-Currently provides with a toolkit for measuring the efficacy of methods for a confidence interval for the following statistics:
+Currently provides a toolkit for measuring the efficacy of methods for a confidence interval for the following statistics:
 
  - proportion
- - difference between two proportions
+ - the difference between two proportions
 
 This library was mainly inspired by the library:
 ["Five Confidence Intervals for Proportions That You Should Know About" by Dr. Dennis Robert](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)
 
-
 ## Dependencies
- - numpy
- - scipy
- - matplotlib
- - tqdm
+ - python >=3.8
+ - python libs:
+    - numpy
+    - scipy
+    - matplotlib
+    - tqdm
+
+## Applications
+
+**Applied statistics and data science:** compare multiple CI methods to select the most appropriate for specific scenarios (by its accuracy at a specific range of true population properties, by computational performance, etc.)
+
+**Education on statistics and CI:** demonstrates how different CI methods perform under various conditions, helps to understand the concept of CI by comparing methods for evaluation of accuracy of CI methods
+
 
 ## Usage
 
-### **Testing Wald Interval - a popular method for calculating confidence interval for proportion**
+### **Testing Wald Interval - a popular method for calculating a confidence interval for proportion**
 
 Wald Interval is defined as so:
 
@@ -25,6 +33,42 @@ Wald Interval is defined as so:
     <img style="display: inline-block; margin: 5px" src="https://latex.codecogs.com/png.latex?%5Cbg_white%20%28w%5E-%2C%20w%5E&plus;%29%20%3D%20%5Chat%7Bp%7D%5C%2C%5Cpm%5C%2Cz%5Csqrt%7B%5Cfrac%7B%5Chat%7Bp%7D%281-%5Chat%7Bp%7D%29%7D%7Bn%7D%7D" alt="$$ (w^-, w^+) = p\,\pm\,z\sqrt{\frac{p(1-p)}{n}} $$" />
 </div>
 
+How well does it approximate the confidence interval?
+
+Let's assess what would be the quality of produced 95%CI with this method by testing on a range of proportions. We'll take 100 true proportions, with 1% step `[0.001, 0.011, 0.021, ..., 0.991]`.
+
+
+```python
+from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit, methods_for_CI_for_proportion
+
+toolkit(
+    method=methods_for_CI_for_proportion.wald_interval, method_name="Wald Interval"
+).calculate_coverage_and_show_plot(
+    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95,
+    plt_figure_title="Wald Interval coverage"
+)
+
+
+input('press Enter to exit')
+```
+
+
+This outputs the image:
+
+![Wald Interval - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/wald_interval_p_0.001_0.999_0.01_n100_conf95.png)
+
+The plot indicates the overall bad performance of the method and particularly poor performance for extreme proportions. While for some true proportions the calculated CI has true confidence of around 95%, most of the time the confidence is significantly lower. For the true proportions of <0.05 and >0.95 the true confidence of the generated CI is generally lower than 90%, as indicated by the steep descent on the left-most and right-most parts of the plot.
+
+<hr>
+
+*You really might want to use a different method. Check out this wonderful medium.com article by **Dr. Dennis Robert**:*
+ - ***[Five Confidence Intervals for Proportions That You Should Know About](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)** [code in R]*
+
+<hr>
+
+<br>
+
+The function `calculate_coverage_and_show_plot` that we just used is a shortcut. The code below does the same calculations and yields the same result. It relies on the public properties and methods, giving more control over parts of the calculation:
 
 ```python
 from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit, methods_for_CI_for_proportion
@@ -43,6 +87,7 @@ wald_interval_test_toolkit.calculate_coverage_analytically(
     sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95)
 # now you can access the calculated coverage and a few statistics:
 # wald_interval_test_toolkit.coverage  # 1-d array of 0-100, the same shape as passed `proportions`
+# NOTE: `proportions`, when passed as a tuple of 3 float strings, expands to a list of evenly spaced float values where the #0 value is begin, #1 is end, #2 is step.
 # wald_interval_test_toolkit.average_coverage  # np.longdouble 0-100, avg of `coverage`
 # wald_interval_test_toolkit.average_deviation  # np.longdouble 0-100, avg abs diff w/ `confidence`
 
@@ -60,39 +105,9 @@ wald_interval_test_toolkit.show_plot()
 input('press Enter to exit')
 ```
 
-This will output the image:
+I expose some style/color settings used by matplotlib.
 
-![Wald Interval - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/wald_interval_p_0.001_0.999_0.01_n100_conf95.png)
-
-The plot indicates overall bad performance of the method and particularly poor performance for extreme proportions. 
-
-<hr>
-
-*You really might want to use a different method. Check out this wonderful medium.com article by **Dr. Dennis Robert**:*
- - ***[Five Confidence Intervals for Proportions That You Should Know About](https://towardsdatascience.com/five-confidence-intervals-for-proportions-that-you-should-know-about-7ff5484c024f)** [code in R]*
-
-<hr>
-
-<br>
-
-The shortcut function `calculate_coverage_and_show_plot` will yield the equivalent calculation and render the same picture:
-
-
-```python
-from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit, methods_for_CI_for_proportion
-
-toolkit(
-    method=methods_for_CI_for_proportion.wald_interval, method_name="Wald Interval"
-).calculate_coverage_and_show_plot(
-    sample_size=100, proportions=('0.001', '0.999', '0.01'), confidence=0.95,
-    plt_figure_title="Wald Interval coverage"
-)
-
-
-input('press Enter to exit')
-```
-
-I personally prefer **night light-friendly** styling:
+My preference goes to the **night light-friendly** styling:
 
 ```python
 from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit, methods_for_CI_for_proportion
@@ -153,6 +168,10 @@ input('press Enter to exit')
 !["I'm telling ya" test - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/im_telling_ya_test_p_0.001_0.999_0.01_n100_conf95_dark.png)
 
 
+This is the kind of test one would not trust. It shows very unreliable performance for the majority of the true proportions, as indicated by an extremely high discrepancy between the "ordered" confidence level of 95% and the true confidence of the CI range provided by this method. This means the output CIs are generally smaller than should be, therefore there's less confidence that the true value lies within the range of a CI. One could say, this method overestimates its ability to generate a confident range.
+
+<b>Let's try another custom method: "God is my witness" score</b>
+
 ```python
 from CI_methods_analyser import CImethodForProportion_efficacyToolkit as toolkit
 from CI_methods_analyser.math_functions import normal_z_score_two_tailed
@@ -181,6 +200,9 @@ input('press Enter to exit')
 ```
 
 !["God is my witness" score - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/God_is_my_witness_score_p_0.001_0.999_0.01_n100_conf95_dark.png)
+
+
+This method clearly overdid the estimates. While one expects 95%CI, the output range is less clear, as it allows for a very wide range of possibilities. In a stats lingo one would say that this method is way too conservative.
 
 
 ### **Testing methods for CI for the difference between two proportions**
@@ -213,9 +235,9 @@ input('press Enter to exit')
 
 ![Z test (unpooled) - real coverage](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/z_test_pooled_p_0.001_0.999_0.01_n1_100_n2_100_conf95.png)
 
-As you can see, this test is generally very good for close proportions, unless proportions have extreme values [purple]
+As you can see, this test is generally perfect for close proportions (along `y = x` line) <b>[WHITE]</b>, unless proportions have extreme values, where confidence of the outputted CIs is lower than expected <b>[PURPLE]</b>
 
-Also, this test is extremely concervative for the high and extreme differences between two proportions, i.e. for proportions which values a far apart [green]
+Also, this test is extremely conservative for the high and extreme differences between two proportions, i.e. for proportions whose values are far apart <b>[GREEN]</b>
 
 <br>
 
@@ -246,12 +268,25 @@ input('press Enter to exit')
 
 ## NOTES
 
-### Methods for measuring efficacy of CI methods
-Two ways can be used to calculate the efficacy of CI methods:
- - approximately, with random simulation (as implemented in R by Dr. Dennis Robert, see link above). Here: `calculate_coverage_randomly`
+### Methods for measuring the efficacy of CI methods
+Two ways can be used to calculate the efficacy of CI methods for a given confidence and a true population proportion:
+ - approximately, with random simulation (as implemented in R by Dr. Dennis Robert, see link above). Here: `calculate_coverage_randomly`.
  - precisely, with the analytical solution. Here: `calculate_coverage_analytically`
 
-Both methods are implemented for CI for both statistics: *proportion*, and *difference between two proportions*. For the precise analytical solution, an optimization was made. Theoretically, it is lossy, but practically the error is always negligible (as proven by `test_z_precision_difference.py`). Optimization is regulated with the parameter `z_precision` and it is automatically estimated by default.
+<b>By default, always prefer the analytical solution.</b>
+
+Sampling the same binomial distribution n times, as it's typically done, (called "random experiments", or "simulations") is inefficient, because the binomial distribution is already fully determined by the given true population proportion.
+
+By relying on the binomial distribution from scipy, the analytical solution provides 100% accuracy for any method (defined as a python function), any confidence level, any true population proportion(s), any sample and population size(s).
+
+Mathematical proof of the analytical solution:
+
+![Proof of the analytical solution](https://github.com/Kukuster/CI_methods_analyser/raw/master/docs/2021-05-08_ci-method-for-proportions_analytical-solution.jpg)
+
+
+Both "simulation" and "analytical" methods are implemented for CI for both statistics: *proportion*, and *the difference between two proportions*. For the precise analytical solution, an optimization was made. Theoretically, it is lossy, but practically, the error is always negligible (as shown by `test_z_precision_difference.py`) and is less significant than a 64-bit floating point precision error between the closest `float` representation and the true `Real` value. Optimization is regulated with the parameter `z_precision`, which is automatically estimated by default.
+
+
 
 <br>
 
