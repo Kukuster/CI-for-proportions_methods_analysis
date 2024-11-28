@@ -1,3 +1,8 @@
+<div style="text-align: center; margin: auto">
+    <img style="display: inline-block; margin: 5px; margin-bottom: 1px;" src="https://img.shields.io/badge/dynamic/json?url=https://packages.ecosyste.ms/api/v1/registries/pypi.org/packages/ci-methods-analyser&label=downloads&query=$.downloads" alt="number of downloads" />
+    <img style="display: inline-block; margin: 5px; margin-bottom: 1px;" src="https://img.shields.io/badge/dynamic/json?url=https://packages.ecosyste.ms/api/v1/registries/pypi.org/packages/ci-methods-analyser&label=within&query=$.downloads_period" alt="downloads period" />
+</div>
+
 # CI methods analyser
 A toolkit for measuring the efficacy of various methods for calculating a confidence interval.
 Currently provides a toolkit for measuring the efficacy of methods for a confidence interval for the following statistics:
